@@ -22,7 +22,7 @@ exports.getUserProfile = async (req, res) => {
 };
 
 // @desc    Add to favorites
-// @route   POST /api/users/favorites/:movieId
+// @route   POST /api/users/favorites/:movieId or /api/users/me/favorites/:movieId
 // @access  Private
 exports.addToFavorites = async (req, res) => {
   try {
@@ -47,14 +47,14 @@ exports.addToFavorites = async (req, res) => {
     user.favorites.push(req.params.movieId);
     await user.save();
 
-    res.status(200).json({ success: true, data: user.favorites });
+    res.status(200).json({ success: true, data: user.favorites, message: 'Added to favorites' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // @desc    Remove from favorites
-// @route   DELETE /api/users/favorites/:movieId
+// @route   DELETE /api/users/favorites/:movieId or /api/users/me/favorites/:movieId
 // @access  Private
 exports.removeFromFavorites = async (req, res) => {
   try {
@@ -66,7 +66,7 @@ exports.removeFromFavorites = async (req, res) => {
     
     await user.save();
 
-    res.status(200).json({ success: true, data: user.favorites });
+    res.status(200).json({ success: true, data: user.favorites, message: 'Removed from favorites' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -85,7 +85,7 @@ exports.getFavorites = async (req, res) => {
 };
 
 // @desc    Add to watchlist
-// @route   POST /api/users/watchlist/:movieId
+// @route   POST /api/users/watchlist/:movieId or /api/users/me/watchlist/:movieId
 // @access  Private
 exports.addToWatchlist = async (req, res) => {
   try {
@@ -114,14 +114,14 @@ exports.addToWatchlist = async (req, res) => {
     user.watchlist.push({ movie: req.params.movieId });
     await user.save();
 
-    res.status(200).json({ success: true, data: user.watchlist });
+    res.status(200).json({ success: true, data: user.watchlist, message: 'Added to watchlist' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // @desc    Remove from watchlist
-// @route   DELETE /api/users/watchlist/:movieId
+// @route   DELETE /api/users/watchlist/:movieId or /api/users/me/watchlist/:movieId
 // @access  Private
 exports.removeFromWatchlist = async (req, res) => {
   try {
@@ -133,7 +133,7 @@ exports.removeFromWatchlist = async (req, res) => {
     
     await user.save();
 
-    res.status(200).json({ success: true, data: user.watchlist });
+    res.status(200).json({ success: true, data: user.watchlist, message: 'Removed from watchlist' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -211,6 +211,28 @@ exports.updatePreferences = async (req, res) => {
     await user.save();
 
     res.status(200).json({ success: true, data: user.preferences });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+// @desc    Get my list (favorites + watchlist)
+// @route   GET /api/users/me/list
+// @access  Private
+exports.getMyList = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate('favorites')
+      .populate('watchlist.movie');
+
+    const favorites = user.favorites || [];
+    const watchlist = user.watchlist || [];
+
+    res.status(200).json({ 
+      success: true, 
+      data: { favorites, watchlist } 
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

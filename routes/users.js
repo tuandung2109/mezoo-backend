@@ -10,11 +10,22 @@ const {
   getWatchlist,
   addToHistory,
   getHistory,
-  updatePreferences
+  updatePreferences,
+  getMyList
 } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
 
+// My List (combined favorites + watchlist)
+router.get('/me/list', protect, getMyList);
+
+// Public routes
 router.get('/:id', getUserProfile);
+
+// My List - specific routes for favorites and watchlist
+router.post('/me/favorites/:movieId', protect, addToFavorites);
+router.delete('/me/favorites/:movieId', protect, removeFromFavorites);
+router.post('/me/watchlist/:movieId', protect, addToWatchlist);
+router.delete('/me/watchlist/:movieId', protect, removeFromWatchlist);
 
 // Favorites
 router.route('/favorites')
