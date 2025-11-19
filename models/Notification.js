@@ -8,7 +8,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['new_movie', 'new_episode', 'comment_reply', 'review_like', 'subscription', 'system'],
+    enum: ['new_movie', 'review_like', 'new_review'],
     required: true
   },
   title: {
@@ -19,10 +19,16 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  link: String,
+  link: {
+    type: String
+  },
   relatedMovie: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Movie'
+  },
+  relatedReview: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review'
   },
   relatedUser: {
     type: mongoose.Schema.Types.ObjectId,
@@ -31,12 +37,13 @@ const notificationSchema = new mongoose.Schema({
   isRead: {
     type: Boolean,
     default: false
-  },
-  readAt: Date
+  }
 }, {
   timestamps: true
 });
 
-notificationSchema.index({ user: 1, isRead: 1, createdAt: -1 });
+// Index for faster queries
+notificationSchema.index({ user: 1, createdAt: -1 });
+notificationSchema.index({ user: 1, isRead: 1 });
 
 module.exports = mongoose.model('Notification', notificationSchema);

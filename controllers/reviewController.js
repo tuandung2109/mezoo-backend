@@ -1,5 +1,6 @@
 const Review = require('../models/Review');
 const Movie = require('../models/Movie');
+const { createNotification } = require('./notificationController');
 
 // @desc    Get reviews for a movie
 // @route   GET /api/reviews/movie/:movieId
@@ -149,13 +150,31 @@ exports.toggleHelpful = async (req, res) => {
 
     const userId = req.user.id;
     const helpfulIndex = review.helpful.indexOf(userId);
+    const wasHelpful = helpfulIndex > -1;
 
-    if (helpfulIndex > -1) {
+    if (wasHelpful) {
       // Remove helpful
       review.helpful.splice(helpfulIndex, 1);
     } else {
       // Add helpful
       review.helpful.push(userId);
+      
+      // Create notification for review owner (if not self-like)
+      if (review.user.toString() !== userId) {
+        const movie = await Movie.findById(review.movie);
+        await createNotification(
+          review.user,
+          'review_like',
+          'Đánh giá của bạn được thích',
+          `Có người thấy đánh giá của bạn về "${movie.title}" hữu ích`,
+          {
+            link: `/movie/${movie._id}`,
+            relatedMovie: movie._id,
+            relatedReview: review._id,
+            relatedUser: userId
+          }
+        );
+      }
     }
 
     await review.save();

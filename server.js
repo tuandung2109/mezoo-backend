@@ -36,6 +36,7 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/comments', require('./routes/comments'));
 app.use('/api/genres', require('./routes/genres'));
 app.use('/api/tmdb', require('./routes/tmdb'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 const PORT = process.env.PORT || 5000;
 
