@@ -196,6 +196,38 @@ exports.getHistory = async (req, res) => {
   }
 };
 
+// @desc    Clear watch history
+// @route   DELETE /api/users/history
+// @access  Private
+exports.clearHistory = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.watchHistory = [];
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Watch history cleared' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Remove single item from watch history
+// @route   DELETE /api/users/history/:movieId
+// @access  Private
+exports.removeFromHistory = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.watchHistory = user.watchHistory.filter(
+      item => item.movie.toString() !== req.params.movieId
+    );
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Removed from history' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Update user preferences
 // @route   PUT /api/users/preferences
 // @access  Private

@@ -10,6 +10,8 @@ const {
   getWatchlist,
   addToHistory,
   getHistory,
+  clearHistory,
+  removeFromHistory,
   updatePreferences,
   getMyList
 } = require('../controllers/userController');
@@ -17,9 +19,6 @@ const { protect } = require('../middleware/auth');
 
 // My List (combined favorites + watchlist)
 router.get('/me/list', protect, getMyList);
-
-// Public routes
-router.get('/:id', getUserProfile);
 
 // My List - specific routes for favorites and watchlist
 router.post('/me/favorites/:movieId', protect, addToFavorites);
@@ -43,10 +42,15 @@ router.route('/watchlist/:movieId')
 
 // Watch History
 router.route('/history')
-  .get(protect, getHistory);
+  .get(protect, getHistory)
+  .delete(protect, clearHistory);
 router.post('/history/:movieId', protect, addToHistory);
+router.delete('/history/:movieId', protect, removeFromHistory);
 
 // Preferences
 router.put('/preferences', protect, updatePreferences);
+
+// Public routes - MUST BE LAST (/:id catches everything)
+router.get('/:id', getUserProfile);
 
 module.exports = router;

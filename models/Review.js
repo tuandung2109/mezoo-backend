@@ -1,50 +1,33 @@
 const mongoose = require('mongoose');
 
 const reviewSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
   movie: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Movie',
     required: true
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   rating: {
     type: Number,
-    required: [true, 'Rating is required'],
-    min: [1, 'Rating must be at least 1'],
-    max: [10, 'Rating cannot exceed 10']
+    required: true,
+    min: 1,
+    max: 5
   },
-  title: {
+  comment: {
     type: String,
+    required: true,
     trim: true,
-    maxlength: [100, 'Title cannot exceed 100 characters']
+    maxlength: 1000
   },
-  content: {
-    type: String,
-    required: [true, 'Review content is required'],
-    minlength: [10, 'Review must be at least 10 characters'],
-    maxlength: [2000, 'Review cannot exceed 2000 characters']
-  },
-  likes: [{
+  helpful: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  dislikes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  spoiler: {
-    type: Boolean,
-    default: false
-  },
-  isApproved: {
-    type: Boolean,
-    default: true
-  },
-  isFeatured: {
+  isEdited: {
     type: Boolean,
     default: false
   }
@@ -52,7 +35,11 @@ const reviewSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Ensure one review per user per movie
-reviewSchema.index({ user: 1, movie: 1 }, { unique: true });
+// Index for faster queries
+reviewSchema.index({ movie: 1, createdAt: -1 });
+reviewSchema.index({ user: 1 });
+
+// Prevent duplicate reviews from same user for same movie
+reviewSchema.index({ movie: 1, user: 1 }, { unique: true });
 
 module.exports = mongoose.model('Review', reviewSchema);

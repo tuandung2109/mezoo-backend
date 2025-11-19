@@ -5,14 +5,19 @@ const {
   createReview,
   updateReview,
   deleteReview,
-  likeReview
+  toggleHelpful,
+  getUserReview
 } = require('../controllers/reviewController');
 const { protect } = require('../middleware/auth');
 
+// Public routes
 router.get('/movie/:movieId', getMovieReviews);
-router.post('/', protect, createReview);
+
+// Private routes
+router.post('/movie/:movieId', protect, createReview);
+router.get('/movie/:movieId/user', protect, getUserReview);
 router.put('/:id', protect, updateReview);
 router.delete('/:id', protect, deleteReview);
-router.put('/:id/like', protect, likeReview);
+router.post('/:id/helpful', protect, toggleHelpful);
 
 module.exports = router;
