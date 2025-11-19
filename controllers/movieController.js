@@ -58,8 +58,7 @@ exports.getMovies = async (req, res) => {
     const movies = await Movie.find(query)
       .sort(sort)
       .limit(limit)
-      .skip(skip)
-      .select('-videos');
+      .skip(skip);
 
     const total = await Movie.countDocuments(query);
 
