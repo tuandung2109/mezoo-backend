@@ -13,7 +13,11 @@ const {
   clearHistory,
   removeFromHistory,
   updatePreferences,
-  getMyList
+  getMyList,
+  getAllUsers,
+  updateUserRole,
+  toggleUserActive,
+  getUserDetails
 } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
 
@@ -49,6 +53,12 @@ router.delete('/history/:movieId', protect, removeFromHistory);
 
 // Preferences
 router.put('/preferences', protect, updatePreferences);
+
+// Admin routes
+router.get('/admin/all', protect, getAllUsers);
+router.get('/admin/:id', protect, getUserDetails);
+router.put('/admin/:id/role', protect, updateUserRole);
+router.put('/admin/:id/toggle-active', protect, toggleUserActive);
 
 // Public routes - MUST BE LAST (/:id catches everything)
 router.get('/:id', getUserProfile);

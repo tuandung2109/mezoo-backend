@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Movie = require('../models/Movie');
+const Review = require('../models/Review');
 
 // @desc    Get user profile
 // @route   GET /api/users/:id
@@ -265,6 +267,138 @@ exports.getMyList = async (req, res) => {
       success: true, 
       data: { favorites, watchlist } 
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+// ============ ADMIN ENDPOINTS ============
+
+// @desc    Get all users (Admin)
+// @route   GET /api/users/admin/all
+// @access  Private/Admin
+exports.getAllUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const users = await User.find({})
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(skip);
+
+    const total = await User.countDocuments();
+
+    // Get stats for each user
+    const usersWithStats = await Promise.all(users.map(async (user) => {
+      const stats = {
+        moviesWatched: user.watchHistory?.length || 0,
+        favorites: user.favorites?.length || 0,
+        reviews: await Review.countDocuments({ user: user._id })
+      };
+      return { ...user.toObject(), stats };
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: usersWithStats,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update user role (Admin)
+// @route   PUT /api/users/admin/:id/role
+// @access  Private/Admin
+exports.updateUserRole = async (req, res) => {
+  try {
+    const { role } = req.body;
+
+    if (!['user', 'admin', 'moderator'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role'
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Toggle user active status (Admin)
+// @route   PUT /api/users/admin/:id/toggle-active
+// @access  Private/Admin
+exports.toggleUserActive = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    user.isActive = !user.isActive;
+    await user.save();
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get user details with stats (Admin)
+// @route   GET /api/users/admin/:id
+// @access  Private/Admin
+exports.getUserDetails = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('-password')
+      .populate('favorites', 'title poster')
+      .populate('watchHistory.movie', 'title poster');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const reviewCount = await Review.countDocuments({ user: user._id });
+
+    const userWithStats = {
+      ...user.toObject(),
+      stats: {
+        moviesWatched: user.watchHistory?.length || 0,
+        favorites: user.favorites?.length || 0,
+        reviews: reviewCount
+      }
+    };
+
+    res.status(200).json({ success: true, data: userWithStats });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -6,9 +6,12 @@ const {
   updateReview,
   deleteReview,
   toggleHelpful,
-  getUserReview
+  getUserReview,
+  getAllReviews,
+  getReviewStats,
+  adminDeleteReview
 } = require('../controllers/reviewController');
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 
 // Public routes
 router.get('/movie/:movieId', getMovieReviews);
@@ -19,5 +22,10 @@ router.get('/movie/:movieId/user', protect, getUserReview);
 router.put('/:id', protect, updateReview);
 router.delete('/:id', protect, deleteReview);
 router.post('/:id/helpful', protect, toggleHelpful);
+
+// Admin routes
+router.get('/admin/all', protect, authorize('admin', 'moderator'), getAllReviews);
+router.get('/admin/stats', protect, authorize('admin', 'moderator'), getReviewStats);
+router.delete('/admin/:id', protect, authorize('admin', 'moderator'), adminDeleteReview);
 
 module.exports = router;
