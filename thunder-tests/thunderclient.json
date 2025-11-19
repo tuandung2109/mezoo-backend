@@ -1,0 +1,90 @@
+{
+  "clientName": "Thunder Client",
+  "collectionName": "Mozi API Tests",
+  "dateExported": "2024-11-19",
+  "version": "1.0",
+  "folders": [],
+  "requests": [
+    {
+      "name": "1. Login Admin",
+      "method": "POST",
+      "url": "http://localhost:5000/api/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"admin@mozi.com\",\n  \"password\": \"admin123456\"\n}"
+      }
+    },
+    {
+      "name": "2. Get Genres",
+      "method": "GET",
+      "url": "http://localhost:5000/api/genres"
+    },
+    {
+      "name": "3. Search TMDB",
+      "method": "GET",
+      "url": "http://localhost:5000/api/tmdb/search?query=avengers",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer YOUR_TOKEN_HERE"
+        }
+      ]
+    },
+    {
+      "name": "4. Import Single Movie (Avengers Endgame)",
+      "method": "POST",
+      "url": "http://localhost:5000/api/tmdb/import/movie/299534",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer YOUR_TOKEN_HERE"
+        }
+      ]
+    },
+    {
+      "name": "5. Bulk Import Movies",
+      "method": "POST",
+      "url": "http://localhost:5000/api/tmdb/import/bulk",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer YOUR_TOKEN_HERE"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"pages\": 3\n}"
+      }
+    },
+    {
+      "name": "6. Get All Movies",
+      "method": "GET",
+      "url": "http://localhost:5000/api/movies?page=1&limit=20"
+    },
+    {
+      "name": "7. Register User",
+      "method": "POST",
+      "url": "http://localhost:5000/api/auth/register",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"test123456\",\n  \"fullName\": \"Test User\"\n}"
+      }
+    }
+  ]
+}

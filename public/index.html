@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mozi - Demo Xem Phim</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .movie-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+        }
+        .movie-poster {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+        }
+        .movie-info {
+            padding: 15px;
+        }
+        .movie-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .movie-rating {
+            color: #f39c12;
+            font-size: 0.9em;
+        }
+        .movie-genres {
+            color: #7f8c8d;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        .video-player {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            padding: 20px;
+        }
+        .video-player.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .video-container {
+            max-width: 1000px;
+            width: 100%;
+        }
+        video {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .close-btn:hover {
+            background: #c0392b;
+        }
+        .video-info {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .video-info h2 {
+            margin-bottom: 10px;
+        }
+        .quality-selector {
+            margin-top: 10px;
+        }
+        .quality-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .quality-btn:hover {
+            background: #2980b9;
+        }
+        .quality-btn.active {
+            background: #27ae60;
+        }
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            padding: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Mozi - Demo Xem Phim</h1>
+        <div id="loading" class="loading">Đang tải phim...</div>
+        <div id="movieGrid" class="movie-grid"></div>
+    </div>
+
+    <div id="videoPlayer" class="video-player">
+        <button class="close-btn" onclick="closePlayer()">✕ Đóng</button>
+        <div class="video-container">
+            <div class="video-info">
+                <h2 id="playerTitle"></h2>
+                <div class="quality-selector" id="qualitySelector"></div>
+            </div>
+            <video id="video" controls autoplay>
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+
+    <script>
+        let currentMovie = null;
+
+        async function loadMovies() {
+            try {
+                const response = await fetch('/api/movies?limit=50');
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                
+                const moviesWithVideo = data.data.filter(movie => movie.videos && movie.videos.length > 0);
+                
+                if (moviesWithVideo.length === 0) {
+                    document.getElementById('movieGrid').innerHTML = '<p style="color: white; text-align: center;">Chưa có phim nào có video</p>';
+                    return;
+                }
+                
+                const grid = document.getElementById('movieGrid');
+                moviesWithVideo.forEach(movie => {
+                    const card = createMovieCard(movie);
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading movies:', error);
+                document.getElementById('loading').innerHTML = 'Lỗi khi tải phim';
+            }
+        }
+
+        function createMovieCard(movie) {
+            const card = document.createElement('div');
+            card.className = 'movie-card';
+            card.onclick = () => playMovie(movie);
+            
+            card.innerHTML = `
+                <img src="${movie.poster || 'https://via.placeholder.com/250x350?text=No+Poster'}" 
+                     alt="${movie.title}" 
+                     class="movie-poster"
+                     onerror="this.src='https://via.placeholder.com/250x350?text=No+Poster'">
+                <div class="movie-info">
+                    <div class="movie-title">${movie.title}</div>
+                    <div class="movie-rating">⭐ ${movie.rating.average.toFixed(1)}/10</div>
+                    <div class="movie-genres">${movie.genres.slice(0, 2).join(', ')}</div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function playMovie(movie) {
+            currentMovie = movie;
+            document.getElementById('playerTitle').textContent = movie.title;
+            document.getElementById('videoPlayer').classList.add('active');
+            
+            // Create quality selector
+            const qualitySelector = document.getElementById('qualitySelector');
+            qualitySelector.innerHTML = '';
+            
+            movie.videos.forEach((video, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'quality-btn' + (index === 0 ? ' active' : '');
+                btn.textContent = video.quality;
+                btn.onclick = () => changeQuality(video.url, btn);
+                qualitySelector.appendChild(btn);
+            });
+            
+            // Load first video
+            const videoElement = document.getElementById('video');
+            videoElement.src = movie.videos[0].url;
+            videoElement.play();
+        }
+
+        function changeQuality(url, btn) {
+            const videoElement = document.getElementById('video');
+            const currentTime = videoElement.currentTime;
+            videoElement.src = url;
+            videoElement.currentTime = currentTime;
+            videoElement.play();
+            
+            // Update active button
+            document.querySelectorAll('.quality-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function closePlayer() {
+            document.getElementById('videoPlayer').classList.remove('active');
+            document.getElementById('video').pause();
+        }
+
+        // Load movies on page load
+        loadMovies();
+    </script>
+</body>
+</html>
