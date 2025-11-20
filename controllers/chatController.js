@@ -6,12 +6,13 @@ const GeminiService = require('../utils/gemini');
 const gemini = new GeminiService(process.env.GEMINI_API_KEY);
 
 // @desc    Send chat message
-// @route   POST /api/chat
-// @access  Private
+// @route   POST /api/chat/send
+// @access  Public (with optional auth)
 exports.sendMessage = async (req, res) => {
   try {
     const { message, sessionId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id;
+    const isGuest = req.isGuest || !userId;
 
     if (!message || !message.trim()) {
       return res.status(400).json({
@@ -20,26 +21,33 @@ exports.sendMessage = async (req, res) => {
       });
     }
 
-    // Get user context
-    const user = await User.findById(userId)
-      .populate('watchHistory.movie', 'title genres')
-      .populate('favorites', 'title genres');
+    // Get user context (if authenticated)
+    let user = null;
+    if (!isGuest) {
+      user = await User.findById(userId)
+        .populate('watchHistory.movie', 'title genres')
+        .populate('favorites', 'title genres');
+    }
 
-    // Get conversation history (last 10 messages)
-    const history = await ChatMessage.find({
-      user: userId,
-      sessionId: sessionId || 'default'
-    })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .select('role content');
+    // Get conversation history (last 10 messages) - only for authenticated users
+    let history = [];
+    if (!isGuest) {
+      history = await ChatMessage.find({
+        user: userId,
+        sessionId: sessionId || 'default'
+      })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .select('role content');
+    }
 
     // Build context
     const userContext = {
-      userName: user.fullName || user.username,
-      subscription: user.subscription,
-      favoriteGenres: user.preferences?.genres || [],
-      watchHistory: user.watchHistory || []
+      userName: user?.fullName || user?.username || 'bạn',
+      subscription: user?.subscription || { plan: 'free' },
+      favoriteGenres: user?.preferences?.genres || [],
+      watchHistory: user?.watchHistory || [],
+      isGuest
     };
 
     // Analyze intent
@@ -56,13 +64,18 @@ exports.sendMessage = async (req, res) => {
       userMessage += featureInfo;
     }
 
+    // Build messages array
+    const historyMessages = history.reverse().map(h => ({
+      role: h.role,
+      content: h.content
+    }));
+
     const messages = [
-      ...history.reverse().map(h => ({
-        role: h.role,
-        content: h.content
-      })),
+      ...historyMessages,
       { role: 'user', content: systemPrompt + '\n\n' + userMessage }
     ];
+
+    console.log('💬 Messages to send:', messages.length, 'messages');
 
     // Get movie recommendations if needed
     let recommendedMovies = [];
@@ -92,49 +105,74 @@ exports.sendMessage = async (req, res) => {
     // Get AI response
     const aiResponse = await gemini.chat(messages);
 
-    // Save user message
-    await ChatMessage.create({
-      user: userId,
-      sessionId: sessionId || 'default',
-      role: 'user',
-      content: message,
-      metadata: {
-        intent,
-        searchQuery: extractedGenres.join(', ')
-      }
-    });
+    // Save messages only for authenticated users
+    let assistantMessage = null;
+    if (!isGuest) {
+      // Save user message
+      await ChatMessage.create({
+        user: userId,
+        sessionId: sessionId || 'default',
+        role: 'user',
+        content: message,
+        metadata: {
+          intent,
+          searchQuery: extractedGenres.join(', ')
+        }
+      });
 
-    // Save assistant message
-    const assistantMessage = await ChatMessage.create({
-      user: userId,
-      sessionId: sessionId || 'default',
-      role: 'assistant',
-      content: aiResponse.content,
-      metadata: {
-        recommendedMovies: recommendedMovies.map(m => m._id),
-        intent,
-        confidence: 0.8
-      },
-      tokens: aiResponse.tokens
-    });
+      // Save assistant message
+      assistantMessage = await ChatMessage.create({
+        user: userId,
+        sessionId: sessionId || 'default',
+        role: 'assistant',
+        content: aiResponse.content,
+        metadata: {
+          recommendedMovies: recommendedMovies.map(m => m._id),
+          intent,
+          confidence: 0.8
+        },
+        tokens: aiResponse.tokens
+      });
 
-    // Populate recommended movies
-    await assistantMessage.populate('metadata.recommendedMovies', 'title poster slug rating.average genres');
+      // Populate recommended movies
+      await assistantMessage.populate('metadata.recommendedMovies', 'title poster slug rating.average genres');
+    }
 
     res.status(200).json({
       success: true,
       data: {
-        message: aiResponse.content,
-        recommendedMovies: assistantMessage.metadata.recommendedMovies,
+        response: aiResponse.content,
+        movieData: recommendedMovies.length > 0 ? {
+          _id: recommendedMovies[0]._id,
+          title: recommendedMovies[0].title,
+          poster: recommendedMovies[0].poster,
+          rating: recommendedMovies[0].rating?.average || 0,
+          releaseDate: recommendedMovies[0].releaseDate,
+          genres: recommendedMovies[0].genres
+        } : null,
+        recommendedMovies: isGuest ? recommendedMovies : assistantMessage?.metadata.recommendedMovies,
         intent,
-        sessionId: sessionId || 'default'
+        sessionId: sessionId || 'default',
+        isGuest
       }
     });
   } catch (error) {
-    console.error('Chat Error:', error);
+    console.error('❌ Chat Error:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Send more specific error message
+    let errorMessage = 'Xin lỗi, tôi đang gặp sự cố. Vui lòng thử lại sau.';
+    
+    if (error.message.includes('Gemini')) {
+      errorMessage = 'AI đang bận, vui lòng thử lại sau vài giây.';
+    } else if (error.message.includes('Messages array is empty')) {
+      errorMessage = 'Tin nhắn không hợp lệ.';
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Xin lỗi, tôi đang gặp sự cố. Vui lòng thử lại sau.'
+      message: errorMessage,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

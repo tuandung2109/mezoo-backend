@@ -8,16 +8,23 @@ class GeminiService {
   }
 
   async chat(messages, context = {}) {
-    const maxRetries = 3;
+    const maxRetries = 5; // Tăng lên 5 lần
     let lastError;
+
+    // Validate messages
+    if (!messages || messages.length === 0) {
+      throw new Error('Messages array is empty');
+    }
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         // Format messages for Gemini
         const contents = messages.map(msg => ({
           role: msg.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: msg.content }]
+          parts: [{ text: msg.content || '' }]
         }));
+
+        console.log('📤 Sending to Gemini:', JSON.stringify(contents, null, 2));
 
         const response = await axios.post(
           `${GEMINI_API_URL}?key=${this.apiKey}`,
@@ -47,13 +54,31 @@ class GeminiService {
           }
         );
 
+        console.log('📥 Gemini response:', JSON.stringify(response.data, null, 2));
+
         // Check if response is valid
-        if (!response.data || !response.data.candidates || response.data.candidates.length === 0) {
-          console.error('Invalid Gemini response:', JSON.stringify(response.data, null, 2));
+        if (!response.data) {
+          console.error('No response data from Gemini');
           throw new Error('No response from Gemini AI');
         }
 
-        const reply = response.data.candidates[0].content.parts[0].text;
+        if (!response.data.candidates || response.data.candidates.length === 0) {
+          console.error('Invalid Gemini response:', JSON.stringify(response.data, null, 2));
+          throw new Error('No candidates in Gemini response');
+        }
+
+        const candidate = response.data.candidates[0];
+        if (!candidate || !candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+          console.error('Invalid candidate structure:', JSON.stringify(candidate, null, 2));
+          throw new Error('Invalid response structure from Gemini');
+        }
+
+        const reply = candidate.content.parts[0].text;
+        if (!reply) {
+          console.error('No text in response:', JSON.stringify(candidate.content.parts[0], null, 2));
+          throw new Error('No text content in Gemini response');
+        }
+
         const usage = response.data.usageMetadata || {};
 
         return {
@@ -71,7 +96,7 @@ class GeminiService {
         
         // Retry on 503 (overloaded) or 429 (rate limit)
         if ((status === 503 || status === 429) && attempt < maxRetries) {
-          const waitTime = attempt * 2000; // 2s, 4s, 6s
+          const waitTime = attempt * 3000; // 3s, 6s, 9s, 12s, 15s
           console.log(`⏳ Gemini API busy, retrying in ${waitTime/1000}s... (attempt ${attempt}/${maxRetries})`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
           continue;
@@ -88,19 +113,102 @@ class GeminiService {
       }
     }
 
-    // All retries failed
+    // All retries failed - return fallback response
+    const status = lastError.response?.status;
+    if (status === 503 || status === 429) {
+      console.log('⚠️ Gemini overloaded, returning fallback response');
+      return {
+        content: 'Xin lỗi, AI đang quá tải. Vui lòng thử lại sau vài giây. Trong lúc chờ, bạn có thể:\n\n🎬 Duyệt phim theo thể loại\n🔍 Tìm kiếm phim yêu thích\n⭐ Xem phim được đánh giá cao\n\nHoặc hỏi tôi lại sau nhé! 😊',
+        tokens: { prompt: 0, completion: 0, total: 0 }
+      };
+    }
+    
     throw new Error(`Gemini API Error: ${lastError.message}`);
   }
 
   // Build system prompt with context
   buildSystemPrompt(userContext = {}) {
-    const { userName, subscription, favoriteGenres, watchHistory } = userContext;
+    const { userName, subscription, favoriteGenres, watchHistory, isGuest } = userContext;
 
     let prompt = `Bạn là trợ lý AI thông minh của MOZI - nền tảng xem phim trực tuyến hàng đầu Việt Nam.
 
 🎬 VỀ MOZI:
 Mozi là nền tảng streaming phim với hàng nghìn bộ phim chất lượng cao, từ Hollywood đến Châu Á. 
 Mozi cung cấp trải nghiệm xem phim mượt mà với nhiều tính năng thông minh.
+
+📊 CẤU TRÚC DỮ LIỆU PHIM (Movie Schema):
+
+Mỗi phim trong Mozi có các thông tin sau:
+
+**Thông tin cơ bản:**
+- title: Tên phim (tiếng Việt hoặc đã dịch)
+- originalTitle: Tên gốc của phim
+- slug: URL thân thiện (vd: avengers-endgame)
+- overview: Tóm tắt nội dung phim
+- tagline: Khẩu hiệu/slogan của phim
+- poster: Ảnh poster chính (dọc)
+- backdrop: Ảnh nền (ngang)
+- trailer: Link trailer YouTube
+
+**Thông tin phát hành:**
+- releaseDate: Ngày phát hành
+- runtime: Thời lượng phim (phút)
+- status: Trạng thái (Released, Post Production, In Production, Planned, Rumored, Canceled)
+- type: Loại (movie hoặc series)
+
+**Phân loại:**
+- genres: Thể loại phim (array) - Hành động, Kinh dị, Hài, Lãng mạn, Khoa học viễn tưởng, Phiêu lưu, Hoạt hình, Tội phạm, Chính kịch, Gia đình, Giả tưởng, Lịch sử, Nhạc, Bí ẩn, Gây cấn, Chiến tranh, Miền tây
+- countries: Quốc gia sản xuất (array)
+- languages: Ngôn ngữ có sẵn (array với code và name)
+- originalLanguage: Ngôn ngữ gốc
+- ageRating: Phân loại độ tuổi (G, PG, PG-13, R, NC-17, NR)
+- adult: Phim người lớn (true/false)
+
+**Đánh giá:**
+- rating.average: Điểm trung bình (0-10)
+- rating.count: Số lượt đánh giá
+- rating.tmdb: Điểm TMDB
+- rating.imdb: Điểm IMDB
+- voteCount: Tổng số vote
+- popularity: Độ phổ biến
+
+**Diễn viên & Crew:**
+- cast: Danh sách diễn viên (name, character, profilePath, order)
+- crew: Đội ngũ sản xuất (name, job, department, profilePath)
+  - Các job phổ biến: Director (Đạo diễn), Producer (Nhà sản xuất), Writer (Biên kịch), Cinematography (Quay phim), Music (Nhạc)
+
+**Video & Chất lượng:**
+- videos: Danh sách video có sẵn (array)
+  - quality: 480p, 720p, 1080p, 4k
+  - url: Link video
+  - size: Dung lượng file
+  - language: Ngôn ngữ (mặc định 'vi')
+  - subtitle: Phụ đề có sẵn (array với language và url)
+
+**Thống kê:**
+- views: Số lượt xem
+- budget: Ngân sách sản xuất (USD)
+- revenue: Doanh thu (USD)
+- featured: Phim nổi bật (true/false)
+- trending: Đang trending (true/false)
+- isPublished: Đã xuất bản (true/false)
+- publishedAt: Ngày xuất bản
+
+**SEO & Metadata:**
+- metadata.keywords: Từ khóa SEO (array)
+- metadata.seoTitle: Tiêu đề SEO
+- metadata.seoDescription: Mô tả SEO
+- tmdbId: ID từ TMDB (The Movie Database)
+
+**Timestamps:**
+- createdAt: Ngày tạo trong hệ thống
+- updatedAt: Ngày cập nhật cuối
+
+💡 KHI TRẢ LỜI VỀ PHIM:
+- Sử dụng đúng tên trường khi giải thích
+- Giải thích rõ ràng ý nghĩa của từng trường
+- Đưa ra ví dụ cụ thể khi cần
+- Nếu user hỏi về trường không tồn tại, hãy gợi ý trường tương tự
 
 📊 CÁC GÓI ĐĂNG KÝ:
 
@@ -211,6 +319,13 @@ Mozi cung cấp trải nghiệm xem phim mượt mà với nhiều tính năng t
       if (recentMovies.length > 0) {
         prompt += `\n📺 ĐÃ XEM GẦN ĐÂY: ${recentMovies.join(', ')}`;
       }
+    }
+
+    if (isGuest) {
+      prompt += `\n\n⚠️ QUAN TRỌNG: Người dùng CHƯA ĐĂNG NHẬP (Guest)`;
+      prompt += `\n- Khuyến khích đăng ký/đăng nhập để trải nghiệm đầy đủ`;
+      prompt += `\n- Giới thiệu các tính năng cần đăng nhập (yêu thích, lịch sử, tải xuống...)`;
+      prompt += `\n- Vẫn gợi ý phim nhưng nhắc nhở đăng nhập để lưu sở thích`;
     }
 
     prompt += `\n\n🎬 Hãy trả lời một cách hữu ích và thân thiện!`;

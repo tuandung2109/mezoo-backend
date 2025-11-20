@@ -9,9 +9,10 @@ const {
   getChatStats
 } = require('../controllers/chatController');
 const { protect, authorize } = require('../middleware/auth');
+const { optionalAuth } = require('../middleware/optionalAuth');
 
 // User routes
-router.post('/', protect, sendMessage);
+router.post('/send', optionalAuth, sendMessage);
 router.get('/history', protect, getChatHistory);
 router.delete('/history', protect, clearChatHistory);
 router.get('/sessions', protect, getChatSessions);
