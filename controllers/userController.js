@@ -403,3 +403,122 @@ exports.getUserDetails = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @desc    Get user personal stats
+// @route   GET /api/users/me/stats
+// @access  Private
+exports.getMyStats = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate('watchHistory.movie', 'title genres runtime releaseDate')
+      .populate('favorites', 'genres');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Basic counts
+    const totalMoviesWatched = user.watchHistory?.length || 0;
+    const totalFavorites = user.favorites?.length || 0;
+    const totalWatchlist = user.watchlist?.length || 0;
+    const reviewCount = await Review.countDocuments({ user: user._id });
+
+    // Calculate total watch time (in minutes)
+    let totalWatchTime = 0;
+    user.watchHistory.forEach(item => {
+      if (item.movie && item.movie.runtime) {
+        totalWatchTime += item.movie.runtime;
+      }
+    });
+
+    // Calculate completed movies
+    const completedMovies = user.watchHistory.filter(item => item.completed).length;
+
+    // Genre statistics
+    const genreCount = {};
+    user.watchHistory.forEach(item => {
+      if (item.movie && item.movie.genres) {
+        item.movie.genres.forEach(genre => {
+          genreCount[genre] = (genreCount[genre] || 0) + 1;
+        });
+      }
+    });
+
+    // Sort genres by count
+    const topGenres = Object.entries(genreCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([genre, count]) => ({ genre, count }));
+
+    // Watch activity by month (last 6 months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const monthlyActivity = {};
+    user.watchHistory.forEach(item => {
+      if (item.watchedAt >= sixMonthsAgo) {
+        const month = new Date(item.watchedAt).toLocaleDateString('vi-VN', { 
+          year: 'numeric', 
+          month: 'short' 
+        });
+        monthlyActivity[month] = (monthlyActivity[month] || 0) + 1;
+      }
+    });
+
+    // Recent activity (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recentActivity = user.watchHistory.filter(
+      item => item.watchedAt >= sevenDaysAgo
+    ).length;
+
+    // Account age in days
+    const accountAge = Math.floor(
+      (Date.now() - new Date(user.createdAt)) / (1000 * 60 * 60 * 24)
+    );
+
+    // Average movies per week
+    const avgMoviesPerWeek = accountAge > 0 
+      ? ((totalMoviesWatched / accountAge) * 7).toFixed(1)
+      : 0;
+
+    const stats = {
+      overview: {
+        totalMoviesWatched,
+        completedMovies,
+        totalFavorites,
+        totalWatchlist,
+        totalReviews: reviewCount,
+        totalWatchTime, // in minutes
+        totalWatchTimeFormatted: `${Math.floor(totalWatchTime / 60)}h ${totalWatchTime % 60}m`,
+        accountAge,
+        avgMoviesPerWeek: parseFloat(avgMoviesPerWeek),
+        recentActivity
+      },
+      genres: {
+        topGenres,
+        totalGenresWatched: Object.keys(genreCount).length
+      },
+      activity: {
+        monthlyActivity: Object.entries(monthlyActivity).map(([month, count]) => ({
+          month,
+          count
+        })),
+        last7Days: recentActivity
+      },
+      subscription: {
+        plan: user.subscription?.plan || 'free',
+        isActive: user.subscription?.isActive || false,
+        startDate: user.subscription?.startDate,
+        endDate: user.subscription?.endDate
+      }
+    };
+
+    res.status(200).json({ success: true, data: stats });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
