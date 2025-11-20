@@ -76,7 +76,7 @@ Content-Type: application/json
 
 ### Get All Movies
 ```http
-GET /api/movies?page=1&limit=20&sort=latest&genre=Action&year=2024&search=avengers
+GET /api/movies?page=1&limit=20&sort=latest&genre=Action&year=2025&search=avengers
 ```
 
 Query Parameters:
@@ -117,7 +117,7 @@ Content-Type: application/json
   "title": "Movie Title",
   "overview": "Movie description",
   "poster": "https://image.url",
-  "releaseDate": "2024-01-01",
+  "releaseDate": "2025-01-01",
   "runtime": 120,
   "genres": ["Action", "Adventure"]
 }
