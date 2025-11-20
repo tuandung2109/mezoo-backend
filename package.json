@@ -10,7 +10,8 @@
     "create:admin": "node scripts/createAdmin.js",
     "add:videos": "node scripts/addDemoVideos.js",
     "add:youtube": "node scripts/addYouTubeTrailers.js",
-    "seed:all": "node scripts/seedAll.js"
+    "seed:all": "node scripts/seedAll.js",
+    "test:chatbot": "node scripts/testChatbot.js"
   },
   "keywords": ["movie", "streaming", "mern"],
   "author": "",

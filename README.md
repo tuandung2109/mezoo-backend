@@ -57,6 +57,14 @@ Backend API cho website xem phim Mozi được xây dựng với MERN stack.
 - Thông báo tập mới
 - Thông báo tương tác
 
+### 10. **ChatMessage** - 🤖 AI Chatbot
+- Lịch sử chat với AI
+- Session management
+- Intent recognition (recommend, search, info, support, howto)
+- Token usage tracking
+- Metadata (recommendedMovies, genres)
+- Auto-delete sau 30 ngày (TTL index)
+
 ## Cài đặt
 
 ```bash
@@ -155,7 +163,16 @@ Server sẽ chạy tại: http://localhost:5000
 - POST `/import/genres` - Import thể loại
 - POST `/import/bulk` - Import hàng loạt
 
+✅ **Chatbot AI** - `/api/chat` 🤖
+- POST `/` - Gửi tin nhắn
+- GET `/history` - Lịch sử chat
+- DELETE `/history` - Xóa lịch sử
+- GET `/sessions` - Danh sách sessions
+- GET `/suggestions` - Gợi ý nhanh
+- GET `/admin/stats` - Thống kê (Admin)
+
 📖 **Chi tiết API**: Xem [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+📖 **Chatbot API**: Xem [CHATBOT_DOCUMENTATION.md](./CHATBOT_DOCUMENTATION.md)
 
 ## Tính năng Database
 
@@ -172,3 +189,101 @@ Server sẽ chạy tại: http://localhost:5000
 ✅ Subtitle support
 ✅ Search optimization với indexes
 ✅ TMDB integration ready
+✅ **AI Chatbot với Google Gemini** 🤖
+
+## 🤖 AI Chatbot
+
+### Tính năng
+Chatbot AI thông minh sử dụng **Google Gemini 2.5 Flash** để:
+- 🎬 Gợi ý phim phù hợp với sở thích user
+- 🔍 Tìm kiếm phim theo thể loại, năm, rating
+- 💡 Trả lời câu hỏi về phim, diễn viên, đạo diễn
+- 🎯 Tư vấn gói đăng ký (Free, Basic, Premium, VIP)
+- ✨ Hướng dẫn sử dụng tính năng Mozi
+- 📊 Cá nhân hóa dựa trên lịch sử xem và sở thích
+
+### Kiến trúc
+```
+User → Frontend (Chatbot.jsx) → Backend API (/api/chat)
+                                      ↓
+                              chatController.js
+                                      ↓
+                              gemini.js (AI Service)
+                                      ↓
+                              Google Gemini API
+                                      ↓
+                              MongoDB (ChatMessage)
+```
+
+### Setup
+```bash
+# API Key đã có sẵn trong .env
+GEMINI_API_KEY=your_key_here
+
+# Test chatbot
+npm run test:chatbot
+```
+
+### Test Scripts
+```bash
+# Test cơ bản
+node test-chat-simple.js
+
+# Test câu hỏi về Mozi
+node test-mozi-questions.js
+
+# Test Gemini API trực tiếp
+node test-gemini-direct.js
+
+# List available models
+node test-list-models.js
+```
+
+### Ví dụ sử dụng
+```javascript
+// POST /api/chat
+{
+  "message": "Gợi ý phim hành động hay cho tôi"
+}
+
+// Response
+{
+  "success": true,
+  "data": {
+    "message": "Dựa trên sở thích của bạn, tôi gợi ý 5 phim hành động đỉnh cao! 🎬...",
+    "intent": "recommend",
+    "recommendedMovies": [
+      {
+        "_id": "...",
+        "title": "Avengers: Endgame",
+        "rating": 8.2,
+        "genres": ["Hành động", "Phiêu lưu"],
+        "poster": "..."
+      }
+    ]
+  }
+}
+```
+
+### Intent Recognition
+Chatbot tự động nhận diện 5 loại ý định:
+- `recommend` - Gợi ý phim
+- `search` - Tìm kiếm phim
+- `info` - Thông tin phim/diễn viên
+- `support` - Hỗ trợ tính năng
+- `howto` - Hướng dẫn sử dụng
+
+### Context-Aware
+Chatbot hiểu thông tin user:
+- Tên và gói đăng ký
+- Thể loại yêu thích (từ watchHistory và favorites)
+- Lịch sử xem gần đây
+- 10 tin nhắn gần nhất trong session
+
+### Documentation
+- [CHATBOT_README.md](../CHATBOT_README.md) - Tổng quan đầy đủ
+- [CHATBOT_DOCUMENTATION.md](./CHATBOT_DOCUMENTATION.md) - API docs
+- [CHATBOT_SETUP.md](./CHATBOT_SETUP.md) - Setup chi tiết
+- [CHATBOT_QUICKSTART.md](../CHATBOT_QUICKSTART.md) - Hướng dẫn nhanh 5 phút
+- [CHATBOT_CAPABILITIES.md](../CHATBOT_CAPABILITIES.md) - Khả năng chatbot
+- [CHATBOT_EXAMPLES.md](../CHATBOT_EXAMPLES.md) - Ví dụ thực tế

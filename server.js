@@ -37,6 +37,7 @@ app.use('/api/comments', require('./routes/comments'));
 app.use('/api/genres', require('./routes/genres'));
 app.use('/api/tmdb', require('./routes/tmdb'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/chat', require('./routes/chat'));
 
 const PORT = process.env.PORT || 5000;
 
