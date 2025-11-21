@@ -102,14 +102,27 @@ exports.sendMessage = async (req, res) => {
       }
     }
     
+    // Pattern 2.5: "tìm X" or "muốn tìm X"
+    if (!searchTitle) {
+      const timMatch = message.match(/(?:toi\s+)?(?:muốn\s+)?(?:tìm|tim)\s+(.+?)(?:\s+\d{2}:\d{2})?$/i);
+      if (timMatch) {
+        searchTitle = timMatch[1].trim();
+      }
+    }
+    
     // Pattern 3: Direct movie name (if intent is info/search and no genre found)
     if (!searchTitle && (intent === 'info' || intent === 'search') && extractedGenres.length === 0) {
       // Remove common question words
-      const cleanMsg = message
+      let cleanMsg = message
         .replace(/^(tuyệt vời|mọi thứ về|cho tôi biết về|thông tin về|nội dung|kể về|giới thiệu|tìm)\s+/i, '')
         .replace(/\s+(là gì|thế nào|như thế nào|nhỉ|ạ|\?|!|\.)+$/i, '')
         .replace(/^phim\s+/i, '')
         .trim();
+      
+      // If message is very short (like "Avengers 4"), use it directly
+      if (cleanMsg.length === 0 && message.trim().length > 2 && message.trim().length < 50) {
+        cleanMsg = message.trim();
+      }
       
       if (cleanMsg.length > 2 && cleanMsg.length < 100) {
         searchTitle = cleanMsg;
@@ -120,11 +133,9 @@ exports.sendMessage = async (req, res) => {
     if (searchTitle) {
       console.log('🔍 Searching for specific movie:', searchTitle);
       
+      // Search by title only (Vietnamese name)
       const specificMovie = await Movie.findOne({
-        $or: [
-          { title: new RegExp(searchTitle, 'i') },
-          { originalTitle: new RegExp(searchTitle, 'i') }
-        ]
+        title: new RegExp(searchTitle, 'i')
       }).select('title genres rating.average overview releaseDate poster slug');
       
       if (specificMovie) {

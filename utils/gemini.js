@@ -34,7 +34,7 @@ class GeminiService {
               temperature: 0.7,
               topK: 40,
               topP: 0.95,
-              maxOutputTokens: 1024,
+              maxOutputTokens: 2048, // Tăng lên để tránh bị cắt
             },
             safetySettings: [
               {
@@ -68,14 +68,38 @@ class GeminiService {
         }
 
         const candidate = response.data.candidates[0];
+        
+        // Check if response was cut off due to MAX_TOKENS
+        if (candidate.finishReason === 'MAX_TOKENS') {
+          console.warn('⚠️ Response was truncated due to MAX_TOKENS');
+        }
+        
         if (!candidate || !candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
           console.error('Invalid candidate structure:', JSON.stringify(candidate, null, 2));
+          
+          // If MAX_TOKENS, return a fallback message
+          if (candidate.finishReason === 'MAX_TOKENS') {
+            return {
+              content: 'Xin lỗi, câu trả lời quá dài. Bạn có thể hỏi ngắn gọn hơn được không? 😊',
+              tokens: { prompt: 0, completion: 0, total: 0 }
+            };
+          }
+          
           throw new Error('Invalid response structure from Gemini');
         }
 
         const reply = candidate.content.parts[0].text;
-        if (!reply) {
+        if (!reply || reply.trim() === '') {
           console.error('No text in response:', JSON.stringify(candidate.content.parts[0], null, 2));
+          
+          // If MAX_TOKENS, return a fallback message
+          if (candidate.finishReason === 'MAX_TOKENS') {
+            return {
+              content: 'Xin lỗi, câu trả lời quá dài. Bạn có thể hỏi cụ thể hơn được không? 😊',
+              tokens: { prompt: 0, completion: 0, total: 0 }
+            };
+          }
+          
           throw new Error('No text content in Gemini response');
         }
 
@@ -349,14 +373,39 @@ Mỗi phim trong Mozi có các thông tin sau:
       return 'recommend';
     }
 
-    // Search intent
+    // Check for how-to questions first (before checking "phim")
+    if (/^(làm sao|như thế nào|cách|hướng dẫn)/i.test(lowerMsg)) {
+      return 'howto';
+    }
+    
+    // Search intent - expanded to catch movie names
     if (
       lowerMsg.includes('tìm') ||
       lowerMsg.includes('search') ||
       lowerMsg.includes('có phim') ||
       lowerMsg.includes('phim nào') ||
-      lowerMsg.includes('tìm kiếm')
+      lowerMsg.includes('tìm kiếm') ||
+      lowerMsg.includes('phim ') // "phim X"
     ) {
+      return 'search';
+    }
+    
+    // Short movie name queries (support Vietnamese characters)
+    // Only treat as search if it looks like a movie title
+    const trimmed = message.trim();
+    const wordCount = trimmed.split(/\s+/).length;
+    
+    // Exclude common phrases and greetings
+    const isCommonPhrase = /^(xin chào|chào|hello|hi|hey|cảm ơn|thank|tôi muốn|tôi cần|bạn có thể|làm ơn|làm sao)/i.test(trimmed);
+    
+    // Only consider as movie search if:
+    // - 1-4 words AND at least 5 characters (e.g. "Frankenstein", "Avengers 4")
+    // - OR 2-4 words (e.g. "Biệt Kích Diệt Sói")
+    // - Contains letters, numbers, spaces, colons, hyphens
+    // - Not a common phrase
+    const isLikelyMovieTitle = (wordCount === 1 && trimmed.length >= 5) || (wordCount >= 2 && wordCount <= 4);
+    
+    if (!isCommonPhrase && isLikelyMovieTitle && /^[a-zA-ZÀ-ỹ0-9\s:.\-]+$/i.test(trimmed) && trimmed.length >= 3 && trimmed.length < 50) {
       return 'search';
     }
 
