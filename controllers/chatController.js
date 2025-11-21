@@ -54,6 +54,9 @@ exports.sendMessage = async (req, res) => {
     const intent = gemini.analyzeIntent(message);
     const extractedGenres = gemini.extractGenres(message);
     const featureInfo = gemini.getFeatureInfo(message);
+    
+    console.log('🔍 Intent:', intent);
+    console.log('🎭 Genres:', extractedGenres);
 
     // Build messages for Gemini
     const systemPrompt = gemini.buildSystemPrompt(userContext);
@@ -80,25 +83,85 @@ exports.sendMessage = async (req, res) => {
     // Get movie recommendations if needed
     let recommendedMovies = [];
     let movieContext = '';
+    let isSpecificMovie = false;
 
-    if (intent === 'recommend' || intent === 'search') {
-      const query = {};
-      
-      if (extractedGenres.length > 0) {
-        query.genres = { $in: extractedGenres };
+    // Try to extract movie title from message (support multiple formats)
+    let searchTitle = null;
+    
+    // Pattern 1: Text in quotes "Frankenstein"
+    const quotedMatch = message.match(/[""]([^""]+)[""]/);
+    if (quotedMatch) {
+      searchTitle = quotedMatch[1];
+    }
+    
+    // Pattern 2: "phim X" or "về phim X" (simple version)
+    if (!searchTitle) {
+      const phimMatch = message.match(/(?:về\s+)?phim\s+(.+?)(?:\s+(?:là|có|thế|nào|không|nhỉ|ạ)|\?|$)/i);
+      if (phimMatch) {
+        searchTitle = phimMatch[1].trim();
       }
-
-      recommendedMovies = await Movie.find(query)
-        .sort({ 'rating.average': -1, views: -1 })
-        .limit(5)
-        .select('title genres rating.average overview releaseDate');
-
-      if (recommendedMovies.length > 0) {
-        movieContext = '\n\nPHIM CÓ SẴN:\n' + recommendedMovies.map((m, i) => 
-          `${i + 1}. "${m.title}" (${new Date(m.releaseDate).getFullYear()}) - ${m.genres.join(', ')} - ⭐ ${m.rating.average.toFixed(1)}/10`
-        ).join('\n');
+    }
+    
+    // Pattern 3: Direct movie name (if intent is info/search and no genre found)
+    if (!searchTitle && (intent === 'info' || intent === 'search') && extractedGenres.length === 0) {
+      // Remove common question words
+      const cleanMsg = message
+        .replace(/^(tuyệt vời|mọi thứ về|cho tôi biết về|thông tin về|nội dung|kể về|giới thiệu|tìm)\s+/i, '')
+        .replace(/\s+(là gì|thế nào|như thế nào|nhỉ|ạ|\?|!|\.)+$/i, '')
+        .replace(/^phim\s+/i, '')
+        .trim();
+      
+      if (cleanMsg.length > 2 && cleanMsg.length < 100) {
+        searchTitle = cleanMsg;
+      }
+    }
+    
+    // Search for specific movie if title found
+    if (searchTitle) {
+      console.log('🔍 Searching for specific movie:', searchTitle);
+      
+      const specificMovie = await Movie.findOne({
+        $or: [
+          { title: new RegExp(searchTitle, 'i') },
+          { originalTitle: new RegExp(searchTitle, 'i') }
+        ]
+      }).select('title genres rating.average overview releaseDate poster slug');
+      
+      if (specificMovie) {
+        recommendedMovies = [specificMovie];
+        isSpecificMovie = true;
+        console.log('✅ Found specific movie:', specificMovie.title);
         
+        movieContext = `\n\nTHÔNG TIN PHIM:\n"${specificMovie.title}" (${new Date(specificMovie.releaseDate).getFullYear()}) - ${specificMovie.genres.join(', ')} - ⭐ ${specificMovie.rating.average.toFixed(1)}/10\n${specificMovie.overview || ''}`;
         messages[messages.length - 1].content += movieContext;
+      }
+    }
+    
+    // If no specific movie found, search by genre or general recommendation
+    if (!isSpecificMovie) {
+      const shouldFindMovies = intent === 'recommend' || intent === 'search' || extractedGenres.length > 0;
+
+      if (shouldFindMovies) {
+        const query = {};
+        
+        if (extractedGenres.length > 0) {
+          query.genres = { $in: extractedGenres };
+        }
+
+        recommendedMovies = await Movie.find(query)
+          .sort({ 'rating.average': -1, views: -1 })
+          .limit(5)
+          .select('title genres rating.average overview releaseDate poster slug');
+
+        console.log('🎬 Found movies by genre:', recommendedMovies.length);
+
+        if (recommendedMovies.length > 0) {
+          movieContext = '\n\nPHIM CÓ SẴN:\n' + recommendedMovies.map((m, i) => 
+            `${i + 1}. "${m.title}" (${new Date(m.releaseDate).getFullYear()}) - ${m.genres.join(', ')} - ⭐ ${m.rating.average.toFixed(1)}/10`
+          ).join('\n');
+          
+          messages[messages.length - 1].content += movieContext;
+        }
       }
     }
 
@@ -138,19 +201,23 @@ exports.sendMessage = async (req, res) => {
       await assistantMessage.populate('metadata.recommendedMovies', 'title poster slug rating.average genres');
     }
 
+    // Format movies for response
+    const formattedMovies = recommendedMovies.map(movie => ({
+      _id: movie._id,
+      title: movie.title,
+      poster: movie.poster,
+      slug: movie.slug,
+      rating: movie.rating?.average || 0,
+      releaseDate: movie.releaseDate,
+      genres: movie.genres,
+      overview: movie.overview
+    }));
+
     res.status(200).json({
       success: true,
       data: {
         response: aiResponse.content,
-        movieData: recommendedMovies.length > 0 ? {
-          _id: recommendedMovies[0]._id,
-          title: recommendedMovies[0].title,
-          poster: recommendedMovies[0].poster,
-          rating: recommendedMovies[0].rating?.average || 0,
-          releaseDate: recommendedMovies[0].releaseDate,
-          genres: recommendedMovies[0].genres
-        } : null,
-        recommendedMovies: isGuest ? recommendedMovies : assistantMessage?.metadata.recommendedMovies,
+        movies: formattedMovies,
         intent,
         sessionId: sessionId || 'default',
         isGuest

@@ -412,15 +412,39 @@ Mỗi phim trong Mozi có các thông tin sau:
 
   // Extract genres from message
   extractGenres(message) {
-    const genres = [
-      'hành động', 'phiêu lưu', 'hoạt hình', 'hài', 'tội phạm',
-      'tài liệu', 'chính kịch', 'gia đình', 'giả tưởng', 'lịch sử',
-      'kinh dị', 'nhạc', 'bí ẩn', 'lãng mạn', 'khoa học viễn tưởng',
-      'gây cấn', 'chiến tranh', 'miền tây'
-    ];
+    // Map Vietnamese genre names to database format
+    const genreMap = {
+      'hành động': 'Phim Hành Động',
+      'phiêu lưu': 'Phim Phiêu Lưu',
+      'hoạt hình': 'Phim Hoạt Hình',
+      'hài': 'Phim Hài',
+      'tội phạm': 'Phim Hình Sự',
+      'hình sự': 'Phim Hình Sự',
+      'tài liệu': 'Phim Tài Liệu',
+      'chính kịch': 'Phim Chính Kịch',
+      'gia đình': 'Phim Gia Đình',
+      'giả tưởng': 'Phim Giả Tượng',
+      'lịch sử': 'Phim Lịch Sử',
+      'kinh dị': 'Phim Kinh Dị',
+      'nhạc': 'Phim Nhạc',
+      'bí ẩn': 'Phim Bí Ẩn',
+      'lãng mạn': 'Phim Lãng Mạn',
+      'khoa học viễn tưởng': 'Phim Khoa Học Viễn Tưởng',
+      'gây cấn': 'Phim Gây Cấn',
+      'chiến tranh': 'Phim Chiến Tranh',
+      'miền tây': 'Phim Miền Tây'
+    };
 
     const lowerMsg = message.toLowerCase();
-    return genres.filter(genre => lowerMsg.includes(genre));
+    const foundGenres = [];
+    
+    for (const [key, value] of Object.entries(genreMap)) {
+      if (lowerMsg.includes(key)) {
+        foundGenres.push(value);
+      }
+    }
+    
+    return foundGenres;
   }
 
   // Get feature info based on keywords
