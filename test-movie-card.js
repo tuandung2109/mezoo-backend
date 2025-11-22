@@ -18,7 +18,7 @@ async function testMovieCard() {
     console.log('='.repeat(60));
 
     try {
-      const response = await axios.post('http://localhost:5000/api/chat/send', {
+      const response = await axios.post('https://mezoo-backend.onrender.com/api/chat/send', {
         message: test.message
       }, {
         timeout: 30000

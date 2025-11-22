@@ -1,7 +1,7 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://mezoo-backend.onrender.com/api';
 
 // Test credentials
 const TEST_USER = {
