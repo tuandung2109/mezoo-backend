@@ -1,4 +1,4 @@
-# 🚀 Hướng Dẫn Setup Chatbot Mozi
+# 🚀 Hướng Dẫn Setup Chatbot mezoo
 
 ## Bước 1: Cài Đặt Dependencies
 
@@ -26,11 +26,11 @@ Server sẽ tự động load route `/api/chat`
 
 ### 1. Login để lấy token
 ```http
-POST https://mozi-backend.onrender.com/api/auth/login
+POST https://mezoo-backend.onrender.com/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@mozi.com",
+  "email": "admin@mezoo.com",
   "password": "admin123456"
 }
 ```
@@ -39,7 +39,7 @@ Copy `token` từ response.
 
 ### 2. Test Chat
 ```http
-POST https://mozi-backend.onrender.com/api/chat
+POST https://mezoo-backend.onrender.com/api/chat
 Authorization: Bearer YOUR_TOKEN
 Content-Type: application/json
 
@@ -51,13 +51,13 @@ Content-Type: application/json
 
 ### 3. Test Quick Suggestions
 ```http
-GET https://mozi-backend.onrender.com/api/chat/suggestions
+GET https://mezoo-backend.onrender.com/api/chat/suggestions
 Authorization: Bearer YOUR_TOKEN
 ```
 
 ### 4. Test Chat History
 ```http
-GET https://mozi-backend.onrender.com/api/chat/history?sessionId=test-session-1
+GET https://mezoo-backend.onrender.com/api/chat/history?sessionId=test-session-1
 Authorization: Bearer YOUR_TOKEN
 ```
 
@@ -82,15 +82,15 @@ function App() {
 
 ### 2. Kiểm tra .env của frontend
 
-File `frontend/mozi-frontend/.env`:
+File `frontend/mezoo-frontend/.env`:
 ```env
-VITE_API_URL=https://mozi-backend.onrender.com/api
+VITE_API_URL=https://mezoo-backend.onrender.com/api
 ```
 
 ### 3. Restart Frontend
 
 ```bash
-cd frontend/mozi-frontend
+cd frontend/mezoo-frontend
 npm run dev
 ```
 
@@ -236,7 +236,7 @@ db.chatmessages.aggregate([
 Edit `backend/utils/gemini.js` - method `buildSystemPrompt()`
 
 ### Thay đổi UI
-Edit `frontend/mozi-frontend/src/components/Chatbot.css`
+Edit `frontend/mezoo-frontend/src/components/Chatbot.css`
 
 ### Thay đổi số phim gợi ý
 Edit `backend/controllers/chatController.js` - line `.limit(5)`

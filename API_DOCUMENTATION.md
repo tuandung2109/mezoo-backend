@@ -1,8 +1,8 @@
-# Mozi API Documentation
+# mezoo API Documentation
 
 ## Base URL
 ```
-https://mozi-backend.onrender.com/api
+https://mezoo-backend.onrender.com/api
 ```
 
 ## Authentication

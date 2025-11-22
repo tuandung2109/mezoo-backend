@@ -22,7 +22,7 @@ app.use(express.static('public'));
 // Routes
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'Mozi Movie API',
+    message: 'mezoo Movie API',
     version: '1.0.0',
     status: 'running'
   });

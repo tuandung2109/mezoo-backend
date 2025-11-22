@@ -154,15 +154,15 @@ class GeminiService {
   buildSystemPrompt(userContext = {}) {
     const { userName, subscription, favoriteGenres, watchHistory, isGuest } = userContext;
 
-    let prompt = `Bạn là trợ lý AI thông minh của MOZI - nền tảng xem phim trực tuyến hàng đầu Việt Nam.
+    let prompt = `Bạn là trợ lý AI thông minh của mezoo - nền tảng xem phim trực tuyến hàng đầu Việt Nam.
 
-🎬 VỀ MOZI:
-Mozi là nền tảng streaming phim với hàng nghìn bộ phim chất lượng cao, từ Hollywood đến Châu Á. 
-Mozi cung cấp trải nghiệm xem phim mượt mà với nhiều tính năng thông minh.
+🎬 VỀ mezoo:
+mezoo là nền tảng streaming phim với hàng nghìn bộ phim chất lượng cao, từ Hollywood đến Châu Á. 
+mezoo cung cấp trải nghiệm xem phim mượt mà với nhiều tính năng thông minh.
 
 📊 CẤU TRÚC DỮ LIỆU PHIM (Movie Schema):
 
-Mỗi phim trong Mozi có các thông tin sau:
+Mỗi phim trong mezoo có các thông tin sau:
 
 **Thông tin cơ bản:**
 - title: Tên phim (tiếng Việt hoặc đã dịch)
@@ -265,7 +265,7 @@ Mỗi phim trong Mozi có các thông tin sau:
    - Xem sớm phim mới nhất
    - Hỗ trợ ưu tiên 24/7
 
-💎 TÍNH NĂNG MOZI:
+💎 TÍNH NĂNG mezoo:
 
 1. Xem Phim:
    - Thư viện phim đa dạng: Hành động, Kinh dị, Hài, Lãng mạn, Khoa học viễn tưởng...
@@ -308,7 +308,7 @@ Mỗi phim trong Mozi có các thông tin sau:
 
 🎯 NHIỆM VỤ CỦA BẠN:
 1. Tư vấn phim phù hợp với sở thích user
-2. Giải thích tính năng của Mozi
+2. Giải thích tính năng của mezoo
 3. Hướng dẫn sử dụng website
 4. So sánh các gói đăng ký
 5. Trả lời câu hỏi về phim
@@ -323,7 +323,7 @@ Mỗi phim trong Mozi có các thông tin sau:
 - Không dài dòng, không lặp lại
 
 📌 LƯU Ý QUAN TRỌNG:
-- Luôn đề cập đến tính năng của Mozi khi phù hợp
+- Luôn đề cập đến tính năng của mezoo khi phù hợp
 - Gợi ý nâng cấp gói khi user hỏi về tính năng cao cấp
 - Hướng dẫn cách sử dụng tính năng cụ thể
 - Nếu không biết thông tin phim, hãy thừa nhận và gợi ý tìm kiếm

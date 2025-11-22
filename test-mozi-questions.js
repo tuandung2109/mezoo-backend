@@ -2,15 +2,15 @@ const axios = require('axios');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
-const API_URL = 'https://mozi-backend.onrender.com/api';
+const API_URL = 'https://mezoo-backend.onrender.com/api';
 
 const questions = [
-  'Mozi là gì?',
+  'mezoo là gì?',
   'Các gói đăng ký có gì khác nhau?',
   'Gói Premium có những tính năng gì?',
   'Làm sao để thêm phim vào yêu thích?',
   'Tôi có thể tải phim về xem offline không?',
-  'Mozi có bao nhiêu thể loại phim?',
+  'mezoo có bao nhiêu thể loại phim?',
   'Làm sao để xem lịch sử phim đã xem?',
   'Gợi ý phim hành động hay cho tôi',
   'Tìm phim kinh dị',
@@ -22,7 +22,7 @@ async function testQuestions() {
     // Login
     console.log('🔐 Logging in...\n');
     const loginRes = await axios.post(`${API_URL}/auth/login`, {
-      email: 'admin@mozi.com',
+      email: 'admin@mezoo.com',
       password: 'admin123456'
     });
     
@@ -41,7 +41,7 @@ async function testQuestions() {
           `${API_URL}/chat`,
           {
             message: question,
-            sessionId: 'test-mozi-features'
+            sessionId: 'test-mezoo-features'
           },
           {
             headers: { Authorization: `Bearer ${token}` }

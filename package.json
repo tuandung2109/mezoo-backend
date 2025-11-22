@@ -1,7 +1,7 @@
 {
-  "name": "mozi-backend",
+  "name": "mezoo-backend",
   "version": "1.0.0",
-  "description": "Backend for Mozi Movie Streaming Platform",
+  "description": "Backend for mezoo Movie Streaming Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,12 +1,12 @@
 const axios = require('axios');
 
-const API_URL = 'https://mozi-backend.onrender.com/api';
+const API_URL = 'https://mezoo-backend.onrender.com/api';
 
 async function testChat() {
   try {
     console.log('🔐 Step 1: Login...');
     const loginRes = await axios.post(`${API_URL}/auth/login`, {
-      email: 'admin@mozi.com',
+      email: 'admin@mezoo.com',
       password: 'admin123456'
     });
     

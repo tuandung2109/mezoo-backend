@@ -5,7 +5,7 @@ async function testChat() {
   try {
     console.log('🧪 Testing chatbot with movie query...\n');
     
-    const response = await axios.post('https://mozi-backend.onrender.com/api/chat/send', {
+    const response = await axios.post('https://mezoo-backend.onrender.com/api/chat/send', {
       message: 'Gợi ý phim hành động hay'
     }, {
       timeout: 30000

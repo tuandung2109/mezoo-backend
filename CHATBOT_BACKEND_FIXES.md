@@ -130,7 +130,7 @@ buildSystemPrompt(userContext = {}) {
 - ✅ Có thể chat với bot
 - ✅ Nhận gợi ý phim
 - ✅ Tìm kiếm phim
-- ✅ Hỏi về tính năng Mozi
+- ✅ Hỏi về tính năng mezoo
 - ✅ Bot khuyến khích đăng nhập
 - ❌ Không lưu chat history
 - ❌ Không có personalization
@@ -275,14 +275,14 @@ Headers: Authorization: Bearer <admin_token> (required)
 
 ### Test với Guest User:
 ```bash
-curl -X POST https://mozi-backend.onrender.com/api/chat/send \
+curl -X POST https://mezoo-backend.onrender.com/api/chat/send \
   -H "Content-Type: application/json" \
   -d '{"message": "Gợi ý phim hành động hay"}'
 ```
 
 ### Test với Authenticated User:
 ```bash
-curl -X POST https://mozi-backend.onrender.com/api/chat/send \
+curl -X POST https://mezoo-backend.onrender.com/api/chat/send \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"message": "Gợi ý phim hành động hay"}'

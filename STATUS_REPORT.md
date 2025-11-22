@@ -1,4 +1,4 @@
-# 📊 Báo Cáo Trạng Thái Backend Mozi
+# 📊 Báo Cáo Trạng Thái Backend mezoo
 
 **Ngày kiểm tra:** 19/11/2025
 **Trạng thái:** ✅ HOÀN THÀNH & SẴN SÀNG
@@ -127,7 +127,7 @@
 ## 📝 Thông Tin Đăng Nhập
 
 ### Admin Account
-- **Email:** admin@mozi.com
+- **Email:** admin@mezoo.com
 - **Password:** admin123456
 - **Role:** Admin (full access)
 
@@ -171,7 +171,7 @@ Backend đã hoàn toàn sẵn sàng để:
 
 ## 🎉 Kết Luận
 
-**Backend Mozi đã hoàn thành 100%** với:
+**Backend mezoo đã hoàn thành 100%** với:
 - ✅ Database structure hoàn chỉnh
 - ✅ API endpoints đầy đủ
 - ✅ Authentication & Authorization

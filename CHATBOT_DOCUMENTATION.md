@@ -1,4 +1,4 @@
-# 🤖 Mozi Chatbot API Documentation
+# 🤖 mezoo Chatbot API Documentation
 
 ## Tổng Quan
 
@@ -237,7 +237,7 @@ Sau khi Thanos xóa sổ 50% sự sống, các Avengers còn lại lên kế ho�
 ### Hỗ trợ
 ```
 User: "Gói Premium có gì?"
-Bot: "Gói Premium của Mozi rất đáng giá! ✨
+Bot: "Gói Premium của mezoo rất đáng giá! ✨
 
 - Xem phim chất lượng 1080p
 - Không quảng cáo
@@ -266,7 +266,7 @@ Chatbot tự động nhận biết:
 
 ### System Prompt
 ```
-Bạn là trợ lý AI thông minh của Mozi - nền tảng xem phim trực tuyến.
+Bạn là trợ lý AI thông minh của mezoo - nền tảng xem phim trực tuyến.
 
 NGƯỜI DÙNG: Nguyễn Văn A
 GÓI ĐĂNG KÝ: PREMIUM
@@ -384,17 +384,17 @@ function Chatbot() {
 ### Test với cURL
 ```bash
 # Send message
-curl -X POST https://mozi-backend.onrender.com/api/chat \
+curl -X POST https://mezoo-backend.onrender.com/api/chat \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"message": "Gợi ý phim hay cho tôi"}'
 
 # Get history
-curl https://mozi-backend.onrender.com/api/chat/history \
+curl https://mezoo-backend.onrender.com/api/chat/history \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # Get suggestions
-curl https://mozi-backend.onrender.com/api/chat/suggestions \
+curl https://mezoo-backend.onrender.com/api/chat/suggestions \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

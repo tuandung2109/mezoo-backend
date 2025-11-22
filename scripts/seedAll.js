@@ -17,7 +17,7 @@ const seedAll = async () => {
 
     // Get existing data
     const movies = await Movie.find().limit(10);
-    const admin = await User.findOne({ email: 'admin@mozi.com' });
+    const admin = await User.findOne({ email: 'admin@mezoo.com' });
 
     if (movies.length === 0) {
       console.log('❌ No movies found. Please import movies first!');
@@ -247,7 +247,7 @@ const seedAll = async () => {
       { type: 'new_movie', title: 'Phim mới', message: `Phim "${movies[0].title}" vừa được thêm vào!` },
       { type: 'comment_reply', title: 'Có người trả lời', message: 'Có người đã trả lời bình luận của bạn' },
       { type: 'review_like', title: 'Đánh giá được thích', message: 'Đánh giá của bạn nhận được 5 lượt thích' },
-      { type: 'system', title: 'Chào mừng!', message: 'Chào mừng bạn đến với Mozi!' }
+      { type: 'system', title: 'Chào mừng!', message: 'Chào mừng bạn đến với mezoo!' }
     ];
 
     let notifCount = 0;

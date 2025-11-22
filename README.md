@@ -1,6 +1,6 @@
-# Mozi - Movie Streaming Platform Backend
+# mezoo - Movie Streaming Platform Backend
 
-Backend API cho website xem phim Mozi được xây dựng với MERN stack.
+Backend API cho website xem phim mezoo được xây dựng với MERN stack.
 
 ## Cấu trúc Database
 
@@ -85,7 +85,7 @@ Lấy TMDB API Key tại: https://www.themoviedb.org/settings/api
 ## Khởi tạo Database
 
 ```bash
-# Tạo admin user (email: admin@mozi.com, password: admin123456)
+# Tạo admin user (email: admin@mezoo.com, password: admin123456)
 npm run create:admin
 
 # Seed genres (thể loại phim)
@@ -199,7 +199,7 @@ Chatbot AI thông minh sử dụng **Google Gemini 2.5 Flash** để:
 - 🔍 Tìm kiếm phim theo thể loại, năm, rating
 - 💡 Trả lời câu hỏi về phim, diễn viên, đạo diễn
 - 🎯 Tư vấn gói đăng ký (Free, Basic, Premium, VIP)
-- ✨ Hướng dẫn sử dụng tính năng Mozi
+- ✨ Hướng dẫn sử dụng tính năng mezoo
 - 📊 Cá nhân hóa dựa trên lịch sử xem và sở thích
 
 ### Kiến trúc
@@ -229,8 +229,8 @@ npm run test:chatbot
 # Test cơ bản
 node test-chat-simple.js
 
-# Test câu hỏi về Mozi
-node test-mozi-questions.js
+# Test câu hỏi về mezoo
+node test-mezoo-questions.js
 
 # Test Gemini API trực tiếp
 node test-gemini-direct.js

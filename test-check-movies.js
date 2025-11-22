@@ -4,7 +4,7 @@ const Movie = require('./models/Movie');
 
 async function checkMovies() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mozi');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mezoo');
     console.log('✅ Connected to MongoDB');
     
     const count = await Movie.countDocuments();

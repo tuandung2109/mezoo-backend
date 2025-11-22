@@ -1,11 +1,11 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const API_URL = 'https://mozi-backend.onrender.com/api';
+const API_URL = 'https://mezoo-backend.onrender.com/api';
 
 // Test credentials
 const TEST_USER = {
-  email: 'admin@mozi.com',
+  email: 'admin@mezoo.com',
   password: 'admin123456'
 };
 
@@ -217,7 +217,7 @@ async function testClearHistory() {
 // Run all tests
 async function runTests() {
   console.log('\n' + '='.repeat(60));
-  console.log('🤖 MOZI CHATBOT API TESTS');
+  console.log('🤖 mezoo CHATBOT API TESTS');
   console.log('='.repeat(60) + '\n');
 
   // Login first

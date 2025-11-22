@@ -15,7 +15,7 @@ async function testSpecificMovie() {
     const message = testMessages[1]; // Test with second message
     console.log('📝 Testing message:', message, '\n');
     
-    const response = await axios.post('https://mozi-backend.onrender.com/api/chat/send', {
+    const response = await axios.post('https://mezoo-backend.onrender.com/api/chat/send', {
       message: message
     }, {
       timeout: 30000
