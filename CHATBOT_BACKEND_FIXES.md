@@ -275,14 +275,14 @@ Headers: Authorization: Bearer <admin_token> (required)
 
 ### Test với Guest User:
 ```bash
-curl -X POST http://localhost:5000/api/chat/send \
+curl -X POST https://mozi-backend.onrender.com/api/chat/send \
   -H "Content-Type: application/json" \
   -d '{"message": "Gợi ý phim hành động hay"}'
 ```
 
 ### Test với Authenticated User:
 ```bash
-curl -X POST http://localhost:5000/api/chat/send \
+curl -X POST https://mozi-backend.onrender.com/api/chat/send \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"message": "Gợi ý phim hành động hay"}'
