@@ -56,14 +56,14 @@ Server sẽ chạy tại: http://localhost:5000
 3. Tìm phim trên TMDB:
 
 ```bash
-GET https://mezoo-backend.onrender.com/api/tmdb/search?query=avengers
+GET http://localhost:5000/api/tmdb/search?query=avengers
 Authorization: Bearer <admin_token>
 ```
 
 4. Import phim bằng TMDB ID:
 
 ```bash
-POST https://mezoo-backend.onrender.com/api/tmdb/import/movie/299536
+POST http://localhost:5000/api/tmdb/import/movie/299536
 Authorization: Bearer <admin_token>
 ```
 
@@ -72,7 +72,7 @@ Authorization: Bearer <admin_token>
 Import nhiều phim phổ biến cùng lúc:
 
 ```bash
-POST https://mezoo-backend.onrender.com/api/tmdb/import/bulk
+POST http://localhost:5000/api/tmdb/import/bulk
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
@@ -89,7 +89,7 @@ Sẽ import ~100 phim phổ biến (20 phim/page × 5 pages)
 
 1. **Register User**
 ```http
-POST https://mezoo-backend.onrender.com/api/auth/register
+POST http://localhost:5000/api/auth/register
 Content-Type: application/json
 
 {
@@ -102,7 +102,7 @@ Content-Type: application/json
 
 2. **Login**
 ```http
-POST https://mezoo-backend.onrender.com/api/auth/login
+POST http://localhost:5000/api/auth/login
 Content-Type: application/json
 
 {
@@ -113,12 +113,12 @@ Content-Type: application/json
 
 3. **Get Movies**
 ```http
-GET https://mezoo-backend.onrender.com/api/movies?page=1&limit=20
+GET http://localhost:5000/api/movies?page=1&limit=20
 ```
 
 4. **Get Genres**
 ```http
-GET https://mezoo-backend.onrender.com/api/genres
+GET http://localhost:5000/api/genres
 ```
 
 ## Cấu trúc API Endpoints

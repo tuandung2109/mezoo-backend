@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-https://mezoo-backend.onrender.com/api
+http://localhost:5000/api
 ```
 
 ## Authentication

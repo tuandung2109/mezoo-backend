@@ -8,7 +8,7 @@
     {
       "name": "1. Login Admin",
       "method": "POST",
-      "url": "https://mezoo-backend.onrender.com/api/auth/login",
+      "url": "http://localhost:5000/api/auth/login",
       "headers": [
         {
           "name": "Content-Type",
@@ -23,12 +23,12 @@
     {
       "name": "2. Get Genres",
       "method": "GET",
-      "url": "https://mezoo-backend.onrender.com/api/genres"
+      "url": "http://localhost:5000/api/genres"
     },
     {
       "name": "3. Search TMDB",
       "method": "GET",
-      "url": "https://mezoo-backend.onrender.com/api/tmdb/search?query=avengers",
+      "url": "http://localhost:5000/api/tmdb/search?query=avengers",
       "headers": [
         {
           "name": "Authorization",
@@ -39,7 +39,7 @@
     {
       "name": "4. Import Single Movie (Avengers Endgame)",
       "method": "POST",
-      "url": "https://mezoo-backend.onrender.com/api/tmdb/import/movie/299534",
+      "url": "http://localhost:5000/api/tmdb/import/movie/299534",
       "headers": [
         {
           "name": "Authorization",
@@ -50,7 +50,7 @@
     {
       "name": "5. Bulk Import Movies",
       "method": "POST",
-      "url": "https://mezoo-backend.onrender.com/api/tmdb/import/bulk",
+      "url": "http://localhost:5000/api/tmdb/import/bulk",
       "headers": [
         {
           "name": "Authorization",
@@ -69,12 +69,12 @@
     {
       "name": "6. Get All Movies",
       "method": "GET",
-      "url": "https://mezoo-backend.onrender.com/api/movies?page=1&limit=20"
+      "url": "http://localhost:5000/api/movies?page=1&limit=20"
     },
     {
       "name": "7. Register User",
       "method": "POST",
-      "url": "https://mezoo-backend.onrender.com/api/auth/register",
+      "url": "http://localhost:5000/api/auth/register",
       "headers": [
         {
           "name": "Content-Type",

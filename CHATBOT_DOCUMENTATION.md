@@ -384,17 +384,17 @@ function Chatbot() {
 ### Test với cURL
 ```bash
 # Send message
-curl -X POST https://mezoo-backend.onrender.com/api/chat \
+curl -X POST http://localhost:5000/api/chat \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"message": "Gợi ý phim hay cho tôi"}'
 
 # Get history
-curl https://mezoo-backend.onrender.com/api/chat/history \
+curl http://localhost:5000/api/chat/history \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # Get suggestions
-curl https://mezoo-backend.onrender.com/api/chat/suggestions \
+curl http://localhost:5000/api/chat/suggestions \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

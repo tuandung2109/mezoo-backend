@@ -26,7 +26,7 @@ Server sẽ tự động load route `/api/chat`
 
 ### 1. Login để lấy token
 ```http
-POST https://mezoo-backend.onrender.com/api/auth/login
+POST http://localhost:5000/api/auth/login
 Content-Type: application/json
 
 {
@@ -39,7 +39,7 @@ Copy `token` từ response.
 
 ### 2. Test Chat
 ```http
-POST https://mezoo-backend.onrender.com/api/chat
+POST http://localhost:5000/api/chat
 Authorization: Bearer YOUR_TOKEN
 Content-Type: application/json
 
@@ -51,13 +51,13 @@ Content-Type: application/json
 
 ### 3. Test Quick Suggestions
 ```http
-GET https://mezoo-backend.onrender.com/api/chat/suggestions
+GET http://localhost:5000/api/chat/suggestions
 Authorization: Bearer YOUR_TOKEN
 ```
 
 ### 4. Test Chat History
 ```http
-GET https://mezoo-backend.onrender.com/api/chat/history?sessionId=test-session-1
+GET http://localhost:5000/api/chat/history?sessionId=test-session-1
 Authorization: Bearer YOUR_TOKEN
 ```
 
@@ -84,7 +84,7 @@ function App() {
 
 File `frontend/mezoo-frontend/.env`:
 ```env
-VITE_API_URL=https://mezoo-backend.onrender.com/api
+VITE_API_URL=http://localhost:5000/api
 ```
 
 ### 3. Restart Frontend

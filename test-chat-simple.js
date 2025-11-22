@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const API_URL = 'https://mezoo-backend.onrender.com/api';
+const API_URL = 'http://localhost:5000/api';
 
 async function testChat() {
   try {
