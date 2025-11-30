@@ -1,5 +1,9 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+const axios = require('axios');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -100,6 +104,85 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Social Login (Google/Facebook)
+// @route   POST /api/auth/social-login
+// @access  Public
+exports.socialLogin = async (req, res) => {
+  try {
+    const { token, provider } = req.body;
+    let userData = {};
+
+    if (provider === 'google') {
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+      const payload = ticket.getPayload();
+      userData = {
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture,
+        googleId: payload.sub
+      };
+    } else {
+      return res.status(400).json({ success: false, message: 'Invalid provider' });
+    }
+
+    if (!userData.email) {
+      return res.status(400).json({ success: false, message: 'Email is required from provider' });
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email: userData.email });
+
+    if (user) {
+      // Update existing user with social ID if missing
+      if (provider === 'google' && !user.googleId) {
+        user.googleId = userData.googleId;
+        if (user.authProvider === 'local') user.authProvider = 'google'; // Optional: keep local or switch? Let's just add ID.
+        await user.save();
+      }
+    } else {
+      // Create new user
+      // Generate a random username if needed or use email prefix
+      let username = userData.email.split('@')[0];
+      // Ensure username is unique
+      let usernameExists = await User.findOne({ username });
+      if (usernameExists) {
+        username += Math.floor(Math.random() * 1000);
+      }
+
+      user = await User.create({
+        username,
+        email: userData.email,
+        fullName: userData.name,
+        avatar: userData.picture,
+        authProvider: provider,
+        [provider + 'Id']: userData[provider + 'Id'],
+        // Password is not required due to our model change
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        avatar: user.avatar,
+        role: user.role,
+        subscription: user.subscription,
+        token: generateToken(user._id)
+      }
+    });
+
+  } catch (error) {
+    console.error('Social Login Error:', error);
+    res.status(500).json({ success: false, message: 'Social login failed' });
   }
 };
 
