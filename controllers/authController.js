@@ -276,7 +276,8 @@ exports.forgotPassword = async (req, res) => {
     // I'll use a generic placeholder or try to infer.
     // Better yet, I'll use a standard format and let the user configure the base URL.
     
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    // const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://mezoo.onrender.com';
     const message = `Bạn nhận được email này vì bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu. Vui lòng nhấp vào liên kết bên dưới để đặt lại mật khẩu:\n\n ${frontendUrl}/reset-password/${resetToken}\n\nNếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.`;
 
     try {
