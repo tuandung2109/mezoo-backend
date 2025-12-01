@@ -2,6 +2,8 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const axios = require('axios');
+const crypto = require('crypto');
+const sendEmail = require('../utils/sendEmail');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -240,6 +242,94 @@ exports.updatePassword = async (req, res) => {
 
     res.status(200).json({ 
       success: true, 
+      data: { token: generateToken(user._id) }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Forgot password
+// @route   POST /api/auth/forgotpassword
+// @access  Public
+exports.forgotPassword = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'There is no user with that email' });
+    }
+
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    // Create reset url
+    const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/resetpassword/${resetToken}`;
+    // Note: In a real app, you'd probably want to link to the frontend reset page, e.g.:
+    // const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    // But for now let's stick to the backend route or adjust if we have frontend URL.
+    // Let's assume we want to send them to the frontend.
+    // The user asked for the feature, so I should probably point to the frontend page I'm about to create.
+    // Let's assume the frontend is running on localhost:5173 (Vite default) or whatever the user has.
+    // I'll use a generic placeholder or try to infer.
+    // Better yet, I'll use a standard format and let the user configure the base URL.
+    
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const message = `Bạn nhận được email này vì bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu. Vui lòng nhấp vào liên kết bên dưới để đặt lại mật khẩu:\n\n ${frontendUrl}/reset-password/${resetToken}\n\nNếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.`;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Yêu cầu đặt lại mật khẩu Mezoo',
+        message
+      });
+
+      res.status(200).json({ success: true, data: 'Email sent' });
+    } catch (err) {
+      console.log(err);
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({ success: false, message: 'Email could not be sent' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Reset password
+// @route   PUT /api/auth/resetpassword/:resettoken
+// @access  Public
+exports.resetPassword = async (req, res) => {
+  try {
+    // Get hashed token
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(req.params.resettoken)
+      .digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid token' });
+    }
+
+    // Set new password
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
       data: { token: generateToken(user._id) }
     });
   } catch (error) {
