@@ -82,6 +82,25 @@ TMDB_API_KEY=your_tmdb_api_key_here
 
 Lấy TMDB API Key tại: https://www.themoviedb.org/settings/api
 
+### Email (Forgot Password)
+
+Từ Render hoặc các host tương tự, việc mở kết nối SMTP (gmail, yahoo, ...) hay bị chặn nên backend hỗ trợ SendGrid qua HTTP API:
+
+```
+# Ưu tiên
+SENDGRID_API_KEY=your_sendgrid_api_key
+FROM_EMAIL=verified_sender@example.com
+FROM_NAME="Mezoo Support"
+
+# Fallback SMTP (nếu muốn dùng máy chủ riêng)
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_EMAIL=apikey_or_username
+SMTP_PASSWORD=super_secret
+```
+
+Nếu `SENDGRID_API_KEY` tồn tại, ứng dụng sẽ gửi email qua SendGrid. Nếu không, hệ thống sẽ thử dùng cấu hình SMTP truyền thống.
+
 ## Khởi tạo Database
 
 ```bash
